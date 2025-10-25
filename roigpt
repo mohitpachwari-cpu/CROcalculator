@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CRO ROI Calculator</title>
+<style>
+  :root{
+    --bg:#FBFBEF;           /* light cream */
+    --ink:#14233B;          /* dark navy */
+    --muted:#6C7A90;
+    --card:#FFFFFF;
+    --accent:#FF6A2A;       /* orange CTA */
+    --accent-dark:#D95418;
+    --border:#E6E9F0;
+  }
+  *{box-sizing:border-box;font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";}
+  body{margin:0;background:var(--bg);color:var(--ink);}
+  .wrap{max-width:980px;margin:48px auto;padding:0 20px;}
+  h1{font-size: clamp(28px, 4.5vw, 44px);line-height:1.15;margin:0 0 8px;}
+  .sub{color:var(--muted);font-size:clamp(14px,2.3vw,18px);margin-bottom:24px}
+  .card{
+    background:var(--card);border:1px solid var(--border);border-radius:16px;
+    padding:22px;display:grid;grid-template-columns:1fr 320px;gap:24px;
+    box-shadow:0 8px 28px rgba(20,35,59,0.08)
+  }
+  @media (max-width:780px){.card{grid-template-columns:1fr}}
+  .card h3{margin:0 0 14px}
+  .field{margin-bottom:16px}
+  label{display:block;font-weight:600;margin:0 0 6px}
+  input[type="number"]{
+    width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:10px;
+    font-size:16px;color:var(--ink);background:#fff;outline:none;
+  }
+  input[type="range"]{width:100%}
+  .hint{font-size:12px;color:var(--muted);margin-top:6px}
+  .results{
+    border-left:1px solid var(--border);padding-left:24px
+  }
+  @media (max-width:780px){.results{border-left:none;border-top:1px solid var(--border);padding:16px 0 0}}
+  .result-row{display:flex;justify-content:space-between;align-items:flex-end;margin:10px 0}
+  .result-row span{color:var(--muted);font-size:14px}
+  .result-row strong{font-size:28px}
+  .badge{display:inline-block;background:#F4F7FF;border:1px solid var(--border);padding:6px 10px;border-radius:999px;font-size:12px;color:var(--muted);margin-bottom:8px}
+  .disclaimer{font-size:12px;color:var(--muted);margin-top:8px}
+  .cta-wrap{display:flex;justify-content:center;margin-top:18px}
+  .cta{
+    background:var(--accent);color:#fff;border:none;border-radius:12px;
+    padding:14px 18px;font-weight:700;font-size:16px;cursor:pointer;
+    box-shadow:0 6px 0 var(--accent-dark);transform:translateY(0);transition:all .1s ease-in;
+  }
+  .cta:active{transform:translateY(3px);box-shadow:0 3px 0 var(--accent-dark)}
+  /* small helper */
+  .stack{display:flex;gap:14px;flex-wrap:wrap}
+  .stack > .field{flex:1 1 220px}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Calculate Your CRO ROI in 30 Seconds</h1>
+    <p class="sub">Enter your ad spend, conversion rate, and AOV — see your current ROAS and how a <strong>+20% CR</strong> boost impacts revenue.</p>
+
+    <div class="card" id="calc">
+      <div>
+        <h3>See your CRO impact in seconds</h3>
+        <div class="stack">
+          <div class="field">
+            <label for="adSpend">Monthly Ad Spend (₹)</label>
+            <input id="adSpend" type="number" min="1000" step="500" value="50000" />
+            <div class="hint">Example: 50000</div>
+          </div>
+          <div class="field">
+            <label for="aov">Average Order Value (₹)</label>
+            <input id="aov" type="number" min="100" step="50" value="1500" />
+            <div class="hint">Example: 1500</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="cr">Current Conversion Rate (%)</label>
+          <input id="cr" type="range" min="0.1" max="10" step="0.1" value="2.0" />
+          <div class="hint">Current: <span id="crVal">2.0%</span></div>
+        </div>
+
+        <p class="disclaimer">This is a directional estimate. Actual results vary by traffic quality, offer, and UX.</p>
+      </div>
+
+      <div class="results">
+        <span class="badge">RESULTS</span>
+
+        <div class="result-row">
+          <span>Current ROAS</span>
+          <strong id="roasCurrent">—</strong>
+        </div>
+        <div class="result-row">
+          <span>ROAS with +20% CR</span>
+          <strong id="roasImproved">—</strong>
+        </div>
+        <div class="result-row">
+          <span>Extra Revenue from +20% CR</span>
+          <strong id="revGain">—</strong>
+        </div>
+
+        <div class="cta-wrap">
+          <button class="cta" id="ctaBtn">Book Free Audit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // Helpers
+  const fmtINR = n => {
+    if (!isFinite(n)) return "—";
+    return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
+  };
+  const fmtX = x => (isFinite(x) ? `${x.toFixed(1)}x` : "—");
+
+  // Elements
+  const adSpendEl = document.getElementById('adSpend');
+  const aovEl = document.getElementById('aov');
+  const crEl = document.getElementById('cr');
+  const crValEl = document.getElementById('crVal');
+
+  const roasCurrentEl = document.getElementById('roasCurrent');
+  const roasImprovedEl = document.getElementById('roasImproved');
+  const revGainEl = document.getElementById('revGain');
+
+  function calc(){
+    const spend = parseFloat(adSpendEl.value) || 0;
+    const aov = parseFloat(aovEl.value) || 0;
+    const cr = parseFloat(crEl.value) || 0;
+
+    // Revenue = clicks * CR * AOV; here we proxy clicks with spend (directional, for demo)
+    // Using the structure you wanted:
+    // Current Revenue = spend * (cr/100) * aov
+    const revCurrent = spend * (cr/100) * aov;
+    const roasCurrent = revCurrent / (spend || 1);
+
+    // +20% CR uplift
+    const crImproved = cr * 1.20;
+    const revImproved = spend * (crImproved/100) * aov;
+    const roasImproved = revImproved / (spend || 1);
+
+    const revGain = revImproved - revCurrent;
+
+    crValEl.textContent = `${cr.toFixed(1)}%`;
+    roasCurrentEl.textContent = fmtX(roasCurrent);
+    roasImprovedEl.textContent = fmtX(roasImproved);
+    revGainEl.textContent = fmtINR(revGain);
+  }
+
+  ['input','change'].forEach(evt=>{
+    adSpendEl.addEventListener(evt, calc);
+    aovEl.addEventListener(evt, calc);
+    crEl.addEventListener(evt, calc);
+  });
+  calc();
+
+  // CTA (adjust link)
+  document.getElementById('ctaBtn').addEventListener('click', () => {
+    // Replace with your Calendly/Typeform URL
+    window.open('https://calendly.com/', '_blank');
+  });
+</script>
+</body>
+</html>
