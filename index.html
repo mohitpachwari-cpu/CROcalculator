@@ -6,40 +6,27 @@
 <title>CRO ROI Calculator</title>
 <style>
   :root{
-    --bg:#FBFBEF;           /* light cream */
-    --ink:#14233B;          /* dark navy */
-    --muted:#6C7A90;
-    --card:#FFFFFF;
-    --accent:#FF6A2A;       /* orange CTA */
-    --accent-dark:#D95418;
-    --border:#E6E9F0;
-    --panel:#F9FAFD;
+    --bg:#FBFBEF;--ink:#14233B;--muted:#6C7A90;--card:#FFFFFF;
+    --accent:#FF6A2A;--accent-dark:#D95418;--border:#E6E9F0;--panel:#F9FAFD;
   }
-  *{box-sizing:border-box;font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";}
-  body{margin:0;background:var(--bg);color:var(--ink);}
-  .wrap{max-width:1180px;margin:48px auto;padding:0 20px;}
-  h1{font-size: clamp(28px, 4.5vw, 44px);line-height:1.15;margin:0 0 8px;}
+  *{box-sizing:border-box;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+  body{margin:0;background:var(--bg);color:var(--ink)}
+  .wrap{max-width:1180px;margin:48px auto;padding:0 20px}
+  h1{font-size:clamp(28px,4.5vw,44px);line-height:1.15;margin:0 0 8px}
   .sub{color:var(--muted);font-size:clamp(14px,2.3vw,18px);margin-bottom:24px}
-  .card{
-    background:var(--card);border:1px solid var(--border);border-radius:16px;
-    padding:22px;display:grid;grid-template-columns:520px 1fr;gap:36px;
-    box-shadow:0 8px 28px rgba(20,35,59,0.08)
-  }
+  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px;
+        display:grid;grid-template-columns:520px 1fr;gap:36px;box-shadow:0 8px 28px rgba(20,35,59,.08)}
   @media (max-width:980px){.card{grid-template-columns:1fr}}
   .left h3{margin:0 0 14px}
   .field{margin-bottom:18px}
   label{display:block;font-weight:800;margin:0 0 8px}
-  input[type="number"]{
-    width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:10px;
-    font-size:16px;color:var(--ink);background:#fff;outline:none;
-  }
+  input[type="number"]{width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:10px;font-size:16px;color:var(--ink)}
   input[type="range"]{width:100%}
   .hint{font-size:13px;color:var(--muted);margin-top:6px}
   .badge{display:inline-block;background:#F4F7FF;border:1px solid var(--border);padding:6px 10px;border-radius:999px;font-size:12px;color:var(--muted);margin-bottom:10px}
 
-  /* Result table */
-  .panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px;}
-  .table{display:grid;grid-template-columns:1fr 2px 1fr;gap:0;border-radius:12px}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px}
+  .table{display:grid;grid-template-columns:1fr 2px 1fr;gap:0}
   .col{padding:12px 16px}
   .sep{background:var(--border);width:2px}
   .thead{font-size:14px;font-weight:800;margin-bottom:10px}
@@ -50,11 +37,8 @@
   .full-row .value{font-size:32px}
 
   .cta-wrap{margin-top:18px}
-  .cta{
-    background:var(--accent);color:#fff;border:none;border-radius:12px;
-    padding:14px 18px;font-weight:800;font-size:16px;cursor:pointer;
-    box-shadow:0 6px 0 var(--accent-dark);transform:translateY(0);transition:all .1s ease-in;
-  }
+  .cta{background:var(--accent);color:#fff;border:none;border-radius:12px;padding:14px 18px;
+       font-weight:800;font-size:16px;cursor:pointer;box-shadow:0 6px 0 var(--accent-dark);transition:transform .1s ease-in, box-shadow .1s ease-in}
   .cta:active{transform:translateY(3px);box-shadow:0 3px 0 var(--accent-dark)}
 </style>
 </head>
@@ -75,15 +59,18 @@
         </div>
 
         <div class="field">
-          <label for="revenue">Revenue You Currently Generate (₹)</label>
-          <input id="revenue" type="number" min="0" step="500" value="500000" />
+          <label for="revenueInput">Revenue You Currently Generate (₹)</label>
+          <input id="revenueInput" type="number" min="0" step="500" value="500000" />
           <div class="hint">Example: 500000</div>
         </div>
 
         <div class="field">
           <label for="cr">How Well Your Website Converts (%) AKA Conversion Rate</label>
-          <input id="cr" type="range" min="0.1" max="10" step="0.1" value="1.2" />
-          <div class="hint">Current: <span id="crVal">1.2%</span> <span style="margin-left:8px;color:#6C7A90">(Most D2C sites average between 1–3%)</span></div>
+          <input id="cr" type="range" min="0.1" max="10" step="0.1" value="2.0" />
+          <div class="hint">
+            Current: <span id="crVal">2%</span>
+            <span style="margin-left:8px;color:#6C7A90">(Most D2C sites average between 1–3%)</span>
+          </div>
         </div>
 
         <p class="hint">Estimate only. Results depend on product, offer, and ad quality.</p>
@@ -155,38 +142,53 @@
   </div>
 
 <script>
-  // Formatters
+  // ------------------------
+  // Helpers / Formatters
+  // ------------------------
   const fmtINR = n => (isFinite(n) ? new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n) : "—");
   const fmtX   = x => (isFinite(x) ? `${x.toFixed(1)}x` : "—");
-  const fmtPct = p => (isFinite(p) ? `${p.toFixed(2).replace(/\.00$/,'') }%` : "—"); // show 1.2% / 1.44%
+  const fmtPct = p => (isFinite(p) ? `${p % 1 === 0 ? p.toFixed(0) : p.toFixed(2)}%` : "—");
 
-  // Elements
-  const adSpendEl = document.getElementById('adSpend');
-  const revenueEl = document.getElementById('revenue');
-  const crEl      = document.getElementById('cr');
-  const crValEl   = document.getElementById('crVal');
+  // Inputs
+  const adSpendEl    = document.getElementById('adSpend');
+  const revenueInput = document.getElementById('revenueInput');
+  const crEl         = document.getElementById('cr');
+  const crValEl      = document.getElementById('crVal');
 
-  const crCurrentValEl = document.getElementById('crCurrentVal');
-  const crImprovedValEl= document.getElementById('crImprovedVal');
-  const roasCurrentEl  = document.getElementById('roasCurrent');
-  const roasImprovedEl = document.getElementById('roasImproved');
-  const revCurrentEl   = document.getElementById('revCurrent');
-  const revImprovedEl  = document.getElementById('revImproved');
-  const revGainEl      = document.getElementById('revGain');
+  // Outputs
+  const crCurrentValEl  = document.getElementById('crCurrentVal');
+  const crImprovedValEl = document.getElementById('crImprovedVal');
+  const roasCurrentEl   = document.getElementById('roasCurrent');
+  const roasImprovedEl  = document.getElementById('roasImproved');
+  const revCurrentEl    = document.getElementById('revCurrent');
+  const revImprovedEl   = document.getElementById('revImproved');
+  const revGainEl       = document.getElementById('revGain');
+
+  // Proportional anchor (k = revenue per 1% CR). It updates whenever revenue input changes.
+  let k = null;
+
+  function updateK(revenue, cr){
+    // Avoid divide-by-zero; if CR is 0, fallback to previous k
+    if (cr > 0) k = revenue / cr;  // revenue is assumed proportional to CR (linear around current point)
+  }
 
   function calc(){
-    const spend = Math.max(parseFloat(adSpendEl.value) || 0, 0);
-    const revenue = Math.max(parseFloat(revenueEl.value) || 0, 0);
-    const cr = Math.max(parseFloat(crEl.value) || 0, 0); // %
+    const spend   = Math.max(parseFloat(adSpendEl.value)    || 0, 0);
+    const revenue = Math.max(parseFloat(revenueInput.value) || 0, 0);
+    const cr      = Math.max(parseFloat(crEl.value)         || 0, 0); // in %
 
-    // Current metrics
-    const roasCurrent = (spend > 0) ? (revenue / spend) : NaN;
+    // Keep the anchor tied to the latest revenue+CR pair
+    if (k === null) updateK(revenue, cr);
 
-    // Assume +20% conversion uplift -> +20% revenue uplift (directional)
+    // Current revenue scales with CR relative to the anchor (so moving the CR slider changes revenue & ROAS)
+    const revCurrent = (k !== null && cr > 0) ? k * cr : revenue;
+    const roasCurrent = spend > 0 ? (revCurrent / spend) : NaN;
+
+    // After 20% uplift
     const crImproved = cr * 1.20;
-    const revenueImproved = revenue * 1.20;
-    const roasImproved = (spend > 0) ? (revenueImproved / spend) : NaN;
-    const extraRevenue = revenueImproved - revenue;
+    const revImproved = (k !== null) ? k * crImproved : revenue * 1.20;
+    const roasImproved = spend > 0 ? (revImproved / spend) : NaN;
+    const revGain = revImproved - revCurrent;
 
     // Update UI
     crValEl.textContent        = fmtPct(cr);
@@ -196,21 +198,24 @@
     roasCurrentEl.textContent  = fmtX(roasCurrent);
     roasImprovedEl.textContent = fmtX(roasImproved);
 
-    revCurrentEl.textContent   = fmtINR(revenue);
-    revImprovedEl.textContent  = fmtINR(revenueImproved);
-    revGainEl.textContent      = fmtINR(extraRevenue);
+    revCurrentEl.textContent   = fmtINR(revCurrent);
+    revImprovedEl.textContent  = fmtINR(revImproved);
+    revGainEl.textContent      = fmtINR(revGain);
   }
 
+  // Recalculate on changes
   ['input','change'].forEach(evt=>{
     adSpendEl.addEventListener(evt, calc);
-    revenueEl.addEventListener(evt, calc);
     crEl.addEventListener(evt, calc);
+    revenueInput.addEventListener(evt, () => { updateK(Math.max(parseFloat(revenueInput.value)||0,0), Math.max(parseFloat(crEl.value)||0,0)); calc(); });
   });
+
+  // Initial run
+  updateK(parseFloat(revenueInput.value)||0, parseFloat(crEl.value)||0);
   calc();
 
   // CTA (replace with your real link)
   document.getElementById('ctaBtn').addEventListener('click', () => {
-    // Example: Calendly / Typeform / WhatsApp link
     window.open('https://calendly.com/', '_blank');
   });
 </script>
